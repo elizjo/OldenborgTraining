@@ -11,6 +11,7 @@ from ue5osc import Communicator
 
 import wandb
 from utils import y_from_filename  # noqa: F401 (needed for fastai load_learner)
+from validation import plot_confusion_matrix
 
 
 @contextmanager
@@ -76,7 +77,7 @@ def main():
         raise Exception("wandb.init() failed")
 
     # Download the fastai learner
-    artifact = run.use_artifact(f"{wandb_model}:latest", type="model")
+    artifact = run.use_artifact(f"{wandb_model}.pkl:latest", type="model")
     model_dir = artifact.download()
     model_filename = Path(model_dir) / wandb_model
 

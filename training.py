@@ -236,11 +236,12 @@ def train_model(dls: DataLoaders, args: Namespace, rep: int, run):
         learn.fit_one_cycle(args.num_epochs)
 
     # TODO: remove the callbacks before exporting so they are not require on loading?
-    learner_filename = f"models/{args.wandb_name}_rep{rep:02}.pkl"
+    learner_filename = f"model/{args.wandb_name}_rep{rep:02}.pkl"
     learn.export(learner_filename)
     artifact = wandb.Artifact(name=args.wandb_name, type="fastai_learner")
-    artifact.add_file(learner_filename, "modelTest")
-    run.log(artifact)
+    artifact.add_dir("model")
+    artifact.add_file(local_path=learner_filename)
+    run.log_artifact(artifact)
 
 
 class ImageCommandModel(nn.Module):

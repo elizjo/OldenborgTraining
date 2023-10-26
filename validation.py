@@ -5,6 +5,9 @@ from contextlib import contextmanager
 from pathlib import Path
 from time import sleep
 import os
+import matplotlib.pyplot as plt
+import numpy as np
+import itertools
 
 from fastai.callback.wandb import WandbCallback
 from fastai.vision.learner import load_learner
@@ -41,6 +44,49 @@ def parse_args():
 def y_from_filename(x, filename):
     filename_stem = Path(filename).stem
     return filename_stem.split('_')[1]
+
+# cm is confusion matrix in numpy representation
+def plot_confusion_matrix(interp, cmap:str="Blues", plot_txt:bool=True, norm_dec:int=2, normalize = False,  **kwargs):
+    "Plot the confusion matrix, with `title` and using `cmap`."
+        # This function is mainly copied from the sklearn docs
+    cm = interp.confusion_matrix()
+    vocab = interp.vocab
+
+    if normalize:
+        title = 'Normalized confusion matrix'
+        filename = 'myfig-norm'
+    else:
+        title = 'Confusion matrix, without normalization'
+        filename = 'myfig'
+            
+    if normalize: 
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+    fig = plt.figure(**kwargs)
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    
+    plt.title(title)
+
+    tick_marks = np.arange(len(vocab))
+    plt.xticks(tick_marks, vocab, rotation=90)
+    plt.yticks(tick_marks, vocab, rotation=0)
+
+    if plot_txt:
+        thresh = cm.max() / 2.
+        for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+            coeff = f'{cm[i, j]:.{norm_dec}f}' if normalize else f'{cm[i, j]}'
+            plt.text(j, i, coeff, horizontalalignment="center", verticalalignment="center", color="white"
+                        if cm[i, j] > thresh else "black")
+
+    ax = fig.gca()
+    ax.set_ylim(len(vocab)-.5,-.5)
+
+    plt.tight_layout()
+    plt.ylabel('Actual')
+    plt.xlabel('Predicted')
+    plt.grid(False)
+    
+    plt.savefig(filename)
+
 
 def main():
     args = parse_args()
@@ -96,8 +142,9 @@ def main():
     # model.predict(image_filenames)
 
     interp = ClassificationInterpretation.from_learner(model, dl = dl_test)
-    print(interp.confusion_matrix())
 
+    cm = plot_confusion_matrix(interp = interp)
+    cm_norm = plot_confusion_matrix(interp = interp, normalize = True)
     # raise SystemExit
 
     num_correct = 0
@@ -129,6 +176,8 @@ def main():
 
     accuracy = num_correct / len(image_filenames)
 
+    run.log({"confusion matrix": wandb.Image("myfig.png")})
+    run.log({"normalized, confusion matrix": wandb.Image("myfig-norm.png")})
 
     run.log({"accuracy": accuracy})
 

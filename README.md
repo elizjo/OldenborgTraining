@@ -27,6 +27,10 @@ python training.py PerfectStaticModel TestingWorkflow "Testing training..." resn
 # Performs inference
 # This will run on a system that can run Unreal Engine
 python inference.py PerfectStaticInference TestingWorkflow "Testing inference..." PerfectStaticModel-resnet18-PerfectStaticData-rep00 InferenceImages
+
+# Performs validation
+# RealTestData is a directory of labelled images with format (num_direction.png)
+python validation.py RealImagesInference TestingWorkflow "Testing real images with inference." PerfectStaticModel-resnet18-PerfectStaticData-rep00 RealTestData
 ~~~
 
 ## Windows
