@@ -15,7 +15,7 @@ args = arg_parser.parse_args()
 
 run = wandb.init(
     job_type="dataset-upload",
-    entity="arcslaboratory",
+    entity= "arcslaboratory",
     project=args.wandb_project,
     notes=args.wandb_notes,
 )
